@@ -31,6 +31,7 @@
                         let download_link = document.createElement("a");
                         download_link.href = download_url;
                         download_link.innerText = "下载转换后的文件";
+                        document.getElementById("download-link").innerHTML = "";
                         document.getElementById("download-link").appendChild(download_link);
                     } else {
                         document.getElementById("output").innerText = "转换失败。请稍检查文件格式。";
