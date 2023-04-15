@@ -27,12 +27,19 @@ func XBS2Json(buffer []byte) ([]byte, error) {
 }
 
 func Json2XBS(buffer []byte) ([]byte, error) {
-	var n uint32 = uint32(len(buffer))
-	if n&3 == 0 {
-		n += 1
+	var buffer_len uint32 = uint32(len(buffer))
+	var n uint32 = 0
+	var buffer_enc_len []byte
+	if (buffer_len & 3) == 0 {
+		n = buffer_len >> 2
+	} else {
+		n = (buffer_len >> 2) + 1
 	}
-	buffer_enc_len := []byte{0x0, 0x0}
-	buffer_enc_len = binary.LittleEndian.AppendUint32(buffer_enc_len, n)
+	for i := buffer_len; i < (n << 2); i++ {
+		buffer_enc_len = append(buffer_enc_len, 0x0)
+	}
+
+	buffer_enc_len = binary.LittleEndian.AppendUint32(buffer_enc_len, buffer_len)
 
 	buffer = append(buffer, buffer_enc_len...)
 	out, err := xxtea.Encrypt(buffer, xxTeaKey, false, 0)
