@@ -4,11 +4,12 @@ GOBUILD=go build -ldflags '-w -s'
 
 PLATFORM_LIST = \
 	linux-amd64 \
-	linux-arm64 \
+	linux-arm64
+WINDOWS_ARCH_LIST = \
 	windows-386 \
 	windows-amd64
-	
-all: $(PLATFORM_LIST)
+
+all: $(PLATFORM_LIST) $(WINDOWS_ARCH_LIST)
 
 linux-amd64:
 	GOARCH=amd64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
@@ -17,12 +18,26 @@ linux-arm64:
 	GOARCH=arm64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
 
 windows-386:
-	GOARCH=386 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
+	GOARCH=386 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@.exe
 	
 windows-amd64:
-	GOARCH=amd64 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
+	GOARCH=amd64 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@.exe
 
-all-arch: $(PLATFORM_LIST)
+
+gz_releases=$(addsuffix .gz, $(PLATFORM_LIST))
+zip_releases=$(addsuffix .zip, $(WINDOWS_ARCH_LIST))
+
+$(gz_releases): %.gz : %
+	chmod +x $(BINDIR)/$(NAME)-$(basename $@)
+	gzip -f -S .gz $(BINDIR)/$(NAME)-$(basename $@)
+
+$(zip_releases): %.zip : %
+	zip -m -j $(BINDIR)/$(NAME)-$(basename $@).zip $(BINDIR)/$(NAME)-$(basename $@).exe
+
+all-arch: $(PLATFORM_LIST) $(WINDOWS_ARCH_LIST)
+
+releases: $(gz_releases) $(zip_releases)
+
 
 clean:
-	rm $(BINDIR)/*
+	rm $(BINDIR)/xbs*
