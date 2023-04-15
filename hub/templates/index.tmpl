@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>香色书源转换</title>
+</head>
+
+<body>
+    <h1>文件转换（XBS、JSON）</h1>
+    <form method="POST" action="{{ .action }}" enctype="multipart/form-data">
+        <input type="file" name="file" />
+        <button>上传文件</button>
+    </form>
+
+    <div id="output"></div>
+    <div id="download-link"></div>
+    <script>
+        function pollConversion(flag) {
+            fetch("/api/conversion-status", {
+                method: "POST",
+                body: new URLSearchParams({
+                "flag": flag,    
+            })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "converting") {
+                        setTimeout(pollConversion(flag), 3000);
+                    } else if (data.status === "done") {
+                        document.getElementById("output").innerText = "转换完成。";
+                        var download_url = window.location.protocol + "//" + window.location.host + "/download-file/" + flag;
+                        let download_link = document.createElement("a");
+                        download_link.href = download_url;
+                        download_link.innerText = "下载转换后的文件";
+                        document.getElementById("download-link").appendChild(download_link);
+                    } else {
+                        document.getElementById("output").innerText = "转换失败。请稍检查文件格式。";
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    document.getElementById("output").innerText = "发生错误。请稍后再试。";
+                });
+        }
+
+        document.querySelector("form").addEventListener("submit", e => {
+            e.preventDefault();
+            document.getElementById("output").innerText = "上传中...请稍等。";
+            const formData = new FormData();
+            formData.append("file", document.querySelector("input[type=file]").files[0]);
+            fetch("/api/convert-file", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("output").innerText = "上传完成。转换中...请稍等。";
+                    pollConversion(data.flag);
+                })
+                .catch(error => {
+                    console.error(error);
+                    document.getElementById("output").innerText = "发生错误。请稍后再试。";
+                });
+        });
+    </script>
+</body>
+
+</html>
