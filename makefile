@@ -3,6 +3,8 @@ BINDIR=bin
 GOBUILD=go build -ldflags '-w -s'
 
 PLATFORM_LIST = \
+	darwin-amd64 \
+	darwin-arm64 \
 	linux-amd64 \
 	linux-arm64
 WINDOWS_ARCH_LIST = \
@@ -10,6 +12,12 @@ WINDOWS_ARCH_LIST = \
 	windows-amd64
 
 all: $(PLATFORM_LIST) $(WINDOWS_ARCH_LIST)
+
+darwin-amd64:
+	GOARCH=amd64 GOOS=darwin $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
+
+darwin-arm64:
+	GOARCH=arm64 GOOS=darwin $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
 
 linux-amd64:
 	GOARCH=amd64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@
